@@ -1,0 +1,97 @@
+<!doctype html>
+<html ng-app = "myModule">
+	<head>
+	<meta charset="utf-8" />
+		<script src="angular.min.js"></script>
+		<script src="angular-cookies.js"></script>
+	</head>
+	<body>
+			<div ng-controller="mycon">
+			
+			<form">
+				<input type = "hidden" ><br>
+				enter a tweet :<input type = "text" ng-model="text" maxlength ="140" ><br>
+				<input  type="submit" ng-click="add(text)" value="add"> 
+			</form><br>
+			
+				<table border="1" align="center">
+					<tr ng-repeat="tweet in tweets " >
+						   <td align="center" >{{user(tweet.userId)}}</td>
+						  <td width="500px">{{tweet.text}}</td>
+						  <td align="center" width="30px">{{tweet.likes}}</td>
+						  
+						  <td ><input type="button" ng-click="like(tweet)" value="like"></td>
+						  <td ><input type="button" ng-click="view(tweet)" value="view"></td>
+					</tr>
+				</table>
+				<br>
+				<input type= "submit" value="logout" ng-click="logout()" />
+			</div>
+	</body>
+	<script>
+	var myapp=angular.module("myModule",['ngCookies'])
+		myapp.controller("mycon",['$scope','$cookies','$http','$window', 
+                       function($scope,$cookies,$http,$window){
+				var users={}
+				var tweets={}
+				var	tweets_userLikes={}			
+				var token =$cookies.get('mytoken')
+				$http.get("http://localhost:3000/tweets")
+				.then(function(response){
+					$scope.tweets=response.data
+					tweets = response.data
+				$http.get("http://localhost:3000/users")
+				.then(function(response){
+					users=response.data
+				})
+			$http.get("http://localhost:3000/tweets_userLikes")
+				.then(function(response){
+					$scope.tweets_userLikes=response.data
+				})
+				
+				})
+				
+				$scope.like=function(tweet){
+					$http.put("http://localhost:3000/tweets/"+tweet.id+"?token="+token)
+					.then(function(response){
+					  if(response.data.success)
+					  {
+					var index = $scope.tweets.indexOf(tweet)
+					$scope.tweets[index] = response.data.tweet
+					}
+
+				})
+				}
+				$scope.view=function(tweet){
+				
+					$http.put("http://localhost:3000/tweets/"+tweet.id+"?token="+token)
+					.then(function(response){
+					  if(response.data.success)
+					  {
+					 // alert(JSON.stringify(response.data))
+						var index = $scope.tweets.indexOf(tweet)
+						$scope.tweets[index] = response.data.tweet
+					}
+
+				})
+				}	
+				$scope.logout=function(){
+					$cookies.remove('mytoken')
+					$window.location.href = 'login.html';
+				}
+				$scope.user=function(id){
+					var user = users.find(function(user){ return (user.id == id )})
+					return user.username
+					}
+				$scope.add=function(tweet){
+				$http.post("http://localhost:3000/addtweet/"+tweet+"?token="+token)
+				.then(function(response){
+					tweets.push(response.data)
+					
+				})}
+			
+				$scope.tweets= tweets
+			}])
+		
+	</script>
+</html>

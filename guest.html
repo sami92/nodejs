@@ -1,0 +1,61 @@
+<!doctype html>
+<html ng-app = "myModule">
+	<head>
+		<script src="angular.min.js"></script>
+		<script src="angular-cookies.js"></script>
+	</head>
+	<body>
+			<div ng-controller="mycon">
+				<table border="1" align="center">
+					<tr ng-repeat="tweet in tweets " >
+						   <td align="center" >{{user(tweet.userId)}}</td>
+						  <td width="500px">{{tweet.text}}</td>
+						  <td align="center" width="30px">{{tweet.likes}}</td>
+						  						  
+					</tr>
+				</table>
+				<p align="center"><a href="http://localhost:3000/signup.html">sign up</a></p>
+				{{token}}<br>
+				{{userId}}
+			</div>
+	</body>
+	<script>
+	var myapp=angular.module("myModule",['ngCookies'])
+		myapp.controller("mycon",['$scope','$cookies','$cookieStore','$http','$window', 
+                       function($scope,$cookies,$cookieStore,$http,$window){
+				$http.get("http://localhost:3000/tweets")
+				.then(function(response){
+					$scope.tweets=response.data
+					
+				$http.get("http://localhost:3000/users")
+				.then(function(response){
+					users=response.data
+				})
+				$http.get("http://localhost:3000/tweets_userLikes")
+				.then(function(response){
+					tweets_userLikes=response.data
+				})
+				
+				})
+				
+				$scope.user=function(id){
+					var user = users.find(function(user){ return (user.id == id )})
+					return user.username
+					}
+				$scope.getLikes=function(id){
+				var sum =0
+				var i=0
+				while(tweets_userLikes[i]!=null)
+				{
+					if(tweets_userLikes[i].tweetsId== id)
+							sum =sum+1
+							i++
+				}
+						return sum
+				}
+			
+				
+			}])
+		
+	</script>
+</html>
